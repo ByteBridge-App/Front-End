@@ -29,8 +29,10 @@ const SendRequestScreen = () => {
 
         await setItem("share_channel_id", share_channel_id)
 
-        const SHARE_SERVER_URL = `${WEBSOCKET_URL}/ws/socket-server/${share_channel_id}/`
-
+        // const SHARE_SERVER_URL = `${WEBSOCKET_URL}/ws/socket-server/${share_channel_id}/`
+            // testing url
+        const SHARE_SERVER_URL = `${WEBSOCKET_URL}/ws/socket-server/233/`
+        console.log(SHARE_SERVER_URL)
         setQRValue(SHARE_SERVER_URL); 
 
         if (!SHARE_SERVER_URL) { 

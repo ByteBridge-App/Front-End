@@ -366,11 +366,14 @@
 
 
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, FlatList, Image, TextInput, StyleSheet, TouchableOpacity, ImageBackground, PanResponder } from 'react-native';
+import { View, Modal, ActivityIndicator, Text, FlatList, Image, TextInput, StyleSheet, TouchableOpacity, ImageBackground, PanResponder, Alert } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { AntDesign } from '@expo/vector-icons';
+import { handleShare } from '../../utils';
+import { getImageType } from '../../utils';
+import { BlurView } from 'expo-blur';
 import ProfileButton from '../../components/ProfileComponent';
 import Checkbox from 'expo-checkbox';
 
@@ -380,7 +383,9 @@ export default function PhotoScreen() {
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [viewingPhotoIndex, setViewingPhotoIndex] = useState(null);
   const [selectAll, setSelectAll] = useState(false);
+  const [sending, setSending] = useState(false)
   const panResponder = useRef(null);
+  const [filename, setFilename] = useState("")
 
   useEffect(() => {
     const getPermissions = async () => {
@@ -479,7 +484,17 @@ export default function PhotoScreen() {
       }
       console.log(selectedPhotos);
       for (var file of selectedPhotos) {
-        handleShare(file, getImageType);
+        setSending(true)
+        setFilename(file.filename)
+        handleShare(file, getImageType)
+        .then(() => {
+          setSending(false)
+          Alert.alert(`${file.filename} sent`)
+        })
+        .catch(() => {
+          setSending(false)
+          Alert.alert("File sharing failed")
+        })
       }
       console.log("sending");
     };
@@ -557,6 +572,20 @@ export default function PhotoScreen() {
         )}
       </View>
       <ShuffleButtonComponent />
+
+
+      <Modal visible={sending} transparent animationType="fade">
+      <BlurView intensity={90} tint="light" style={styles.blurContainer}>
+      <View style={styles.modalContainer}>
+        {/* <GeneralLoader /> */}
+        {/* <ReceiveLoader /> */}
+          <ActivityIndicator size={60} color="#004d40" />
+          <Text style={styles.text}>Sending...</Text>
+          <Text style={styles.text}>{filename}</Text>
+        </View>
+      </BlurView>
+      </Modal>
+
     </ImageBackground>
   );
 }
@@ -579,8 +608,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.8,
     shadowRadius: 2,
-    borderRadius: 40,
-    backgroundColor: 'white', // Make header transparent to see background image
+    borderRadius: 10,
+    backgroundColor: 'green', // Make header transparent to see background image
     elevation: 5,
   },
   logo: {
@@ -599,10 +628,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 10,
-    backgroundColor: 'white',
+    backgroundColor: 'green',
     borderBottomWidth: 9,
     borderBottomColor: '#fffff',
     marginTop: 15,
+    
   },
   selectButton: {
     flexDirection: 'row',
@@ -728,16 +758,29 @@ const styles = StyleSheet.create({
     width: 30,
     marginEnd: 10,
   },
-  backButton: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 10,
+
+  blurContainer: {
+    flex: 1,
+    padding: 20,
+    margin: 16,
+    textAlign: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
     borderRadius: 20,
+  },
+
+  text: {
+    marginTop: 130,
+    fontSize: 24,
+    color: "#004d40",
+    fontWeight: '600',
+  },
+
+  modalContainer: {
+    flex: 1,
+    // backgroundColor: "red",
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 1, // Ensure it's on top of other elements
   },
 });
 
